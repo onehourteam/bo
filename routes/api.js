@@ -1,14 +1,10 @@
 var express = require('express');
 var router = express.Router();
 
-// /* GET users listing. */
-// router.get('/', function(req, res, next) {
-//   res.send('respond with a resource');
-// });
-
 /* POST install */
-router.get('/install', function (req, res, next) {
-  res.json({ message: 'OK' });
+router.post('/install', function (req, res, next) {
+  // TODO install db schema structure
+  res.json({ message: 'Success' });
 });
 
 module.exports = router;

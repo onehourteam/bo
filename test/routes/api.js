@@ -11,7 +11,7 @@ describe('API', () => {
     describe('POST /api/install', () => {
         it('it should install the schema structure', (done) => {
             chai.request(app)
-                .post('/install')
+                .post('/api/install')
                 .end((err, res) => {
                     res.should.have.status(200);
                     done();
