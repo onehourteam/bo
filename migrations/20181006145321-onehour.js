@@ -53,8 +53,8 @@ exports.up = function (db, callback) {
       borrower_id: { type: dataType.INTEGER, notNull: true },
       user_book_id: { type: dataType.INTEGER, notNull: true },
       status: { type: dataType.SMALLINT, notNull: true },
-      from_location_id: dataType.INTEGER,
-      to_location_id: dataType.INTEGER,
+      from_location_id: dataType.INTEGER, // use edges.id
+      to_location_id: dataType.INTEGER, // use edges.id
       duration: dataType.INTEGER,
       created_time: { type: dataType.DATE_TIME, notNull: true },
       updated_time: dataType.DATE_TIME,
@@ -72,6 +72,9 @@ exports.up = function (db, callback) {
       transaction_id: { type: dataType.INTEGER, notNull: true },
       feedback: { type: dataType.CHAR, notNull: true },
     }),
+    // Edges
+    // users < locations
+    // users < books (book owner)
     db.createTable.bind(db, 'edges', {
       id: { type: dataType.INTEGER, primaryKey: true },
       source_id: { type: dataType.INTEGER, notNull: true },
@@ -80,12 +83,71 @@ exports.up = function (db, callback) {
       created_time: { type: dataType.DATE_TIME, notNull: true },
       updated_time: dataType.DATE_TIME,
     }),
-    // @TODO add foreign keys
+    db.addForeignKey.bind(db, 'users_books', 'users', 'users_books_users_id_foreign',
+      {
+        'user_id': 'id'
+      },
+      {
+        onDelete: 'CASCADE',
+        onUpdate: 'RESTRICT'
+      }),
+    db.addForeignKey.bind(db, 'users_books', 'books', 'users_books_books_id_foreign',
+      {
+        'book_id': 'id'
+      },
+      {
+        onDelete: 'CASCADE',
+        onUpdate: 'RESTRICT'
+      }),
+    db.addForeignKey.bind(db, 'transactions', 'users_books', 'transactions_users_books_id_foreign',
+      {
+        'user_book_id': 'id'
+      },
+      {
+        onDelete: 'CASCADE',
+        onUpdate: 'RESTRICT'
+      }),
+    db.addForeignKey.bind(db, 'transactions', 'users', 'transactions_users_lender_id_foreign',
+      {
+        'lender_id': 'id'
+      },
+      {
+        onDelete: 'CASCADE',
+        onUpdate: 'RESTRICT'
+      }),
+    db.addForeignKey.bind(db, 'transactions', 'users', 'transactions_users_borrower_id_foreign',
+      {
+        'borrower_id': 'id'
+      },
+      {
+        onDelete: 'CASCADE',
+        onUpdate: 'RESTRICT'
+      }),
   ], callback);
 };
 
 exports.down = function (db, callback) {
   async.series([
+    db.removeForeignKey.bind(db, 'users_books', 'users_books_users_id_foreign',
+      {
+        dropIndex: true,
+      }),
+    db.removeForeignKey.bind(db, 'users_books', 'users_books_books_id_foreign',
+      {
+        dropIndex: true,
+      }),
+    db.removeForeignKey.bind(db, 'transactions', 'transactions_users_books_id_foreign',
+      {
+        dropIndex: true,
+      }),
+    db.removeForeignKey.bind(db, 'transactions', 'transactions_users_lender_id_foreign',
+      {
+        dropIndex: true,
+      }),
+    db.removeForeignKey.bind(db, 'transactions', 'transactions_users_borrower_id_foreign',
+      {
+        dropIndex: true,
+      }),
     db.dropTable.bind(db, 'users'),
     db.dropTable.bind(db, 'books'),
     db.dropTable.bind(db, 'users_books'),
